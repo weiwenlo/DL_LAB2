@@ -14,10 +14,10 @@ def train(args):
     data_path= args.data_path
     epochs = args.epochs
     batch_size = args.batch_size
-    learning_rate = args.learning_rate
+    learning_rate = args.learning_rate 
     
     model_type = args.model_type
-    trainfile_name = "e_"+str(epochs)+"_"+"type_"+model_type 
+    trainfile_name = "e_"+str(epochs)+"_"+"t_"+model_type+"lr_"+str(args.learning_rate)
     # 1. 準備資料
     train_dataset = load_dataset(data_path,"train")
     valid_dataset = load_dataset(data_path,"valid")
