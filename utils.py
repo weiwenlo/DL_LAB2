@@ -20,6 +20,7 @@ def dice_score(pred_mask, gt_mask,eps=1e-7):
 def plot_accuracy(train_acc_list, valid_acc_list, filename, results_dir='plot'):
 
     num_epochs = len(train_acc_list)
+    fig = plt.figure()
     plt.figure()
     plt.plot(np.arange(1, num_epochs+1),
              train_acc_list, label='Training')
@@ -38,3 +39,4 @@ def plot_accuracy(train_acc_list, valid_acc_list, filename, results_dir='plot'):
             results_dir, filename+'.pdf')
         plt.savefig(image_path)
     plt.show()
+    plt.close(fig)  # 關掉這張圖，避免下次殘留
