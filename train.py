@@ -17,7 +17,7 @@ def train(args):
     learning_rate = args.learning_rate 
     
     model_type = args.model_type
-    trainfile_name = "e_"+str(epochs)+"_"+"t_"+model_type+"lr_"+str(args.learning_rate)
+    trainfile_name = "e_"+str(epochs)+"_"+"t_"+model_type+"lr_"+str(args.learning_rate)+"bs_"+str(batch_size)
     # 1. 準備資料
     train_dataset = load_dataset(data_path,"train")
     valid_dataset = load_dataset(data_path,"valid")
