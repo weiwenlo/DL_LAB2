@@ -100,7 +100,8 @@ class SimpleOxfordPetDataset(OxfordPetDataset):
         sample["image"] = np.moveaxis(image, -1, 0)
         sample["mask"] = np.expand_dims(mask, 0)
         sample["trimap"] = np.expand_dims(trimap, 0)
-
+        
+        sample["image"] /= 255.0
         return sample
 
     def _rotate_sample(sample, max_deg=15):
@@ -122,6 +123,7 @@ class SimpleOxfordPetDataset(OxfordPetDataset):
         sample["image"] = np.array(img_pil)
         sample["mask"] = np.array(mask_pil)
         sample["trimap"] = np.array(tri_pil)
+
         return sample
 class TqdmUpTo(tqdm):
     def update_to(self, b=1, bsize=1, tsize=None):
