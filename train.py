@@ -1,17 +1,23 @@
 import argparse
 from oxford_pet import load_dataset
 import torch
-import matplotlib.pyplot as plt
 from models.unet import UNet
+from models.resnet34_unet import ResNetU,BasicBlock
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from evaluate import evaluate
-torch.backends.cudnn.benchmark = True  # 對固定輸入大小加速
+from utils import *
+
+
+
 def train(args):
     data_path= args.data_path
     epochs = args.epochs
     batch_size = args.batch_size
     learning_rate = args.learning_rate
+    
+    model_type = args.model_type
+    trainfile_name = "epochs_"+str(epochs)+"type_"+model_type 
     # 1. 準備資料
     train_dataset = load_dataset(data_path,"train")
     valid_dataset = load_dataset(data_path,"valid")
@@ -36,7 +42,10 @@ def train(args):
     DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     # 2. 建立模型
-    model = UNet(in_channels=3, out_channels=1)
+    if model_type =="unet":
+        model = UNet(in_channels=3, out_channels=1)
+    elif model_type =="rnet34andU":
+        model = ResNetU(BasicBlock, layers=[3, 4, 6, 3], num_classes=1)
     model = model.to(DEVICE)
 
     # 3. 損失函數與 optimizer
@@ -46,15 +55,19 @@ def train(args):
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
 
 
-    print_every = 10  # 每 10 個 batch 印一次
-
+    # print_every = 10  # 每 10 個 batch 印一次
+    train_acc_list = []
+    valid_acc_list = []
     best_val_dice = 0.0
+    patience = 5                 # 最多允許連續幾個 epoch 沒改善
+    no_improve_count = 0         # 累積沒改善的次數
     for epoch in range(epochs):
         
         model.train()
         running = 0.0
         epoch_loss = 0.0
         pbar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}", ncols=100)
+        # pbar = tqdm(valid_loader, desc=f"Epoch {epoch+1}/{epochs}", ncols=100)
         # for batch_idx, batch in enumerate(loader):
         for batch_idx, batch in enumerate(pbar):
             # images = batch["image"].float().to(DEVICE)
@@ -75,17 +88,28 @@ def train(args):
             optimizer.step()
             epoch_loss += loss.item()
             running += loss.item()
-            if (batch_idx + 1) % print_every == 0:
-                avg = running / print_every
-                pbar.set_postfix({"loss": f"{avg:.4f}"})
-                running = 0.0
+            #追蹤loss 用
+            # if (batch_idx + 1) % print_every == 0:
+            #     avg = running / print_every
+            #     pbar.set_postfix({"loss": f"{avg:.4f}"})
+            #     running = 0.0
+        train_dice = evaluate(model=model, data_loader=train_loader,DEVICE=DEVICE)
         val_dice = evaluate(model=model, data_loader=valid_loader,DEVICE=DEVICE)
+        train_acc_list.append(train_dice)
+        valid_acc_list.append(val_dice)
         # print(f"Epoch [{epoch+1}/{epochs}], Loss: {epoch_loss/len(loader):.4f}")
         if val_dice > best_val_dice:
             print(f"dice score:{val_dice}")
             best_val_dice = val_dice
-            torch.save(model.state_dict(), "best_unet.pt")
+            no_improve_count = 0
+
+            torch.save(model.state_dict(), trainfile_name+".pth")
             print("  ✅ New best model saved.")
+        else:
+            no_improve_count += 1
+        if no_improve_count >= patience:
+            print("Early stopping triggered.")
+            break
     # sample = dataset[0]
     # # 因為 SimpleOxfordPetDataset 已經把 image 轉成 (C, H, W)
     # # 要還原成 (H, W, C) 才能用 plt.imshow 顯示
@@ -105,17 +129,25 @@ def train(args):
     # plt.axis('off')
 
     # plt.show()
-
+    return train_acc_list, valid_acc_list, trainfile_name
 
 def get_args():
     parser = argparse.ArgumentParser(description='Train the UNet on images and target masks')
     parser.add_argument('--data_path', type=str,default='dataset/oxford-iiit-pet', help='path of the input data')
-    parser.add_argument('--epochs', '-e', type=int, default=5, help='number of epochs')
+    parser.add_argument('--epochs', '-e', type=int, default=2, help='number of epochs')
     parser.add_argument('--batch_size', '-b', type=int, default=4, help='batch size')
     parser.add_argument('--learning-rate', '-lr', type=float, default=1e-5, help='learning rate')
-
+    # parser.add_argument('--model_para_path', '-m', type=str, default="best_unet.pth", help='para path')
+    parser.add_argument('--model_type', '-t', type=str, default="rnet34andU", help='model type')
     return parser.parse_args()
  
 if __name__ == "__main__":
     args = get_args()
-    train(args)
+    seed = 123
+    torch.cuda.manual_seed_all(seed)# 多組GPU需要固定
+    torch.manual_seed(seed) # CPU和GPU固定
+    # 關掉 benchmark，避免根據輸入大小選不同 kernel
+    # torch.backends.cudnn.benchmark = False
+    torch.use_deterministic_algorithms(True) #演算法用非隨機性
+    train_acc_list, valid_acc_list,trainfile_name= train(args)
+    plot_accuracy(train_acc_list, valid_acc_list,trainfile_name)
