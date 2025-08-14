@@ -91,20 +91,23 @@ class SimpleOxfordPetDataset(OxfordPetDataset):
                 sample["image"]  = np.fliplr(sample["image"])
                 sample["mask"]   = np.fliplr(sample["mask"])
                 sample["trimap"] = np.fliplr(sample["trimap"])
+            if np.random.rand() < 0.5:
+                sample = self._rotate_sample(sample, max_deg=15)
         # resize images
         image = np.array(Image.fromarray(sample["image"]).resize((256, 256), Image.BILINEAR))
         mask = np.array(Image.fromarray(sample["mask"]).resize((256, 256), Image.NEAREST))
         trimap = np.array(Image.fromarray(sample["trimap"]).resize((256, 256), Image.NEAREST))
 
+
+
         # convert to other format HWC -> CHW
         sample["image"] = np.moveaxis(image, -1, 0)
         sample["mask"] = np.expand_dims(mask, 0)
         sample["trimap"] = np.expand_dims(trimap, 0)
-        
-        sample["image"] /= 255.0
+
         return sample
 
-    def _rotate_sample(sample, max_deg=15):
+    def _rotate_sample(self,sample, max_deg=15):
         """Rotate image/mask/trimap by the same random angle.
         Image uses bilinear; mask/trimap use nearest; fill background with 0.
         """
