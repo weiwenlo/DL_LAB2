@@ -91,8 +91,8 @@ class SimpleOxfordPetDataset(OxfordPetDataset):
                 sample["image"]  = np.fliplr(sample["image"])
                 sample["mask"]   = np.fliplr(sample["mask"])
                 sample["trimap"] = np.fliplr(sample["trimap"])
-            if np.random.rand() < 0.5:
-                sample = self._rotate_sample(sample, max_deg=15)
+
+            sample = self._rotate_sample(sample, max_deg=15)
         # resize images
         image = np.array(Image.fromarray(sample["image"]).resize((256, 256), Image.BILINEAR))
         mask = np.array(Image.fromarray(sample["mask"]).resize((256, 256), Image.NEAREST))
