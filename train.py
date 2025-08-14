@@ -7,12 +7,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from evaluate import evaluate
 from utils import *
-import random
-def seed_worker(worker_id):
-    # 讓每個 worker 有不同的 numpy/python 隨機種子
-    worker_seed = (torch.initial_seed() + worker_id) % 2**32
-    np.random.seed(worker_seed)
-    random.seed(worker_seed)
+
+
 
 def train(args):
     data_path= args.data_path
@@ -27,26 +23,13 @@ def train(args):
     train_dataset = load_dataset(data_path,"train")
     valid_dataset = load_dataset(data_path,"valid")
     # loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    # train_loader = DataLoader(
-    #     train_dataset,
-    #     batch_size=batch_size,
-    #     shuffle=True,
-    #     num_workers=4,              # Windows 也 OK；如果記憶體吃緊可降到 2
-    #     pin_memory=True,
-    #     persistent_workers=True     # 需要 num_workers > 0
-    # )
-    
-    g = torch.Generator()
-    g.manual_seed(123)
     train_loader = DataLoader(
-    train_dataset,
-    batch_size=batch_size,
-    shuffle=True,
-    num_workers=4,
-    pin_memory=True,
-    persistent_workers=True,
-    worker_init_fn=seed_worker,  # ★ 關鍵：給每個 worker 不同 seed
-    generator=g,                 # ★ 控制 shuffle 可重現
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=4,              # Windows 也 OK；如果記憶體吃緊可降到 2
+        pin_memory=True,
+        persistent_workers=True     # 需要 num_workers > 0
     )
     valid_loader = DataLoader(
         valid_dataset,
