@@ -26,8 +26,10 @@ def inference(args):
     )
     DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    model = UNet(in_channels=3, out_channels=1)
-    model = ResNetU(BasicBlock, layers=[3, 4, 6, 3], num_classes=1)
+    if model_type =="unet":
+        model = UNet(in_channels=3, out_channels=1)
+    elif model_type =="rnet34andU":
+        model = ResNetU(BasicBlock, layers=[3, 4, 6, 3], num_classes=1)
     model = model.to(DEVICE)
 
     state = torch.load(model_para_path, map_location=DEVICE)
@@ -114,6 +116,7 @@ def get_args():
     parser.add_argument('--batch_size', '-b', type=int, default=4, help='batch size')
     parser.add_argument('--model_para_path', '-m', type=str, default="epochs_2type_rnet34andU.pth", help='path to the stored model weoght')
     parser.add_argument('--save_img_dir', '-i', type=str, default="pred_mask", help='path to the stored model weoght')
+    parser.add_argument('--model_type', '-t', type=str, default="rnet34andU", help='model type')
     return parser.parse_args()
 
 if __name__ == '__main__':
