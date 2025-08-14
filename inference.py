@@ -58,7 +58,7 @@ def inference(args):
             first_batch_images = images
             first_batch_gt = masks
             first_batch_pred = preds
-    print(f"[Inference] Arch= | Avg Dice on TEST: {dice_sum/num:.6f} (N={num})")
+    print(f"[Inference] Avg Dice on TEST: {dice_sum/num:.6f} (N={num})|Arch={model_para_path}")
     if first_batch_images is not None:
         visualize_triplets(
             images=first_batch_images,
