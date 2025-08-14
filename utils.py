@@ -26,6 +26,11 @@ def plot_accuracy(train_acc_list, valid_acc_list, filename, results_dir='plot'):
              train_acc_list, label='Training')
     plt.plot(np.arange(1, num_epochs+1),
              valid_acc_list, label='Validation')
+    for x, y in zip(np.arange(1, num_epochs+1), train_acc_list):
+        plt.text(x, y, f"{y:.4f}", ha='center', va='bottom')
+
+    for x, y in zip(np.arange(1, num_epochs+1), valid_acc_list):
+        plt.text(x, y, f"{y:.4f}", ha='center', va='bottom')
 
     plt.xlabel('Epoch')
     plt.ylabel('Dice score')

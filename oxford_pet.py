@@ -84,7 +84,7 @@ class SimpleOxfordPetDataset(OxfordPetDataset):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.color_jitter = transforms.ColorJitter(
-            brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2
+            brightness=0.4, contrast=0.4, saturation=0.4, hue=0.2
         )
     def __getitem__(self, *args, **kwargs):
 
