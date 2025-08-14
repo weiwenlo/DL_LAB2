@@ -6,6 +6,7 @@ from models.unet import UNet
 from models.resnet34_unet import ResNetU,BasicBlock
 from tqdm import tqdm
 from utils import dice_score 
+from IPython.display import display
 import matplotlib.pyplot as plt
 import os
 def inference(args):
@@ -82,7 +83,7 @@ def visualize_triplets(images, gt_masks, pred_masks, save_dir=None, max_show=4):
         gt   = gt_masks[i, 0].numpy()
         pred = pred_masks[i, 0].numpy()
 
-        plt.figure(figsize=(12, 4))
+        fig=plt.figure(figsize=(12, 4))
         # 原圖
         plt.subplot(1, 3, 1)
         plt.title("Image")
@@ -104,7 +105,9 @@ def visualize_triplets(images, gt_masks, pred_masks, save_dir=None, max_show=4):
         plt.tight_layout()
         if save_dir:
             plt.savefig(os.path.join(save_dir, f"triplet_{i:03d}.png"))
-        plt.show()
+        # plt.show()
+        display(fig)
+        
 def get_args():
     parser = argparse.ArgumentParser(description='Predict masks from input images')
     parser.add_argument('--data_path','-p' ,type=str,default='dataset/oxford-iiit-pet', help='path of the input data')
