@@ -86,11 +86,11 @@ class SimpleOxfordPetDataset(OxfordPetDataset):
         sample = super().__getitem__(*args, **kwargs)
         # 只在訓練集做旋轉增強；驗證/測試不要動
         # 只在訓練集做左右翻轉
-        # if getattr(self, "mode", None) == "train":
-        #     if np.random.rand() < 0.5:  # 50% 機率翻轉
-        #         sample["image"]  = np.fliplr(sample["image"])
-        #         sample["mask"]   = np.fliplr(sample["mask"])
-        #         sample["trimap"] = np.fliplr(sample["trimap"])
+        if getattr(self, "mode", None) == "train":
+            if np.random.rand() < 0.5:  # 50% 機率翻轉
+                sample["image"]  = np.fliplr(sample["image"])
+                sample["mask"]   = np.fliplr(sample["mask"])
+                sample["trimap"] = np.fliplr(sample["trimap"])
         # resize images
         image = np.array(Image.fromarray(sample["image"]).resize((256, 256), Image.BILINEAR))
         mask = np.array(Image.fromarray(sample["mask"]).resize((256, 256), Image.NEAREST))
