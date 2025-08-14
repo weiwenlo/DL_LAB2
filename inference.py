@@ -14,7 +14,7 @@ def inference(args):
     batch_size = args.batch_size
     model_para_path = args.model_para_path
     save_dir = args.save_img_dir
-
+    model_type = args.model_type
     test_dataset = load_dataset(data_path,"test")
     test_loader = DataLoader(
         test_dataset,
