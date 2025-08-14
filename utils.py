@@ -20,7 +20,7 @@ def dice_score(pred_mask, gt_mask,eps=1e-7):
 def plot_accuracy(train_acc_list, valid_acc_list, filename, results_dir='plot'):
 
     num_epochs = len(train_acc_list)
-
+    plt.figure()
     plt.plot(np.arange(1, num_epochs+1),
              train_acc_list, label='Training')
     plt.plot(np.arange(1, num_epochs+1),
