@@ -60,7 +60,7 @@ def train(args):
     train_acc_list = []
     valid_acc_list = []
     best_val_dice = 0.0
-    patience = 7                # 最多允許連續幾個 epoch 沒改善
+    patience = 5                # 最多允許連續幾個 epoch 沒改善
     no_improve_count = 0         # 累積沒改善的次數
     for epoch in range(epochs):
         
