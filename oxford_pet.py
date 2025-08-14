@@ -84,7 +84,13 @@ class SimpleOxfordPetDataset(OxfordPetDataset):
     def __getitem__(self, *args, **kwargs):
 
         sample = super().__getitem__(*args, **kwargs)
-
+        # 只在訓練集做旋轉增強；驗證/測試不要動
+        # 只在訓練集做左右翻轉
+        if getattr(self, "mode", None) == "train":
+            if np.random.rand() < 0.5:  # 50% 機率翻轉
+                sample["image"]  = np.fliplr(sample["image"])
+                sample["mask"]   = np.fliplr(sample["mask"])
+                sample["trimap"] = np.fliplr(sample["trimap"])
         # resize images
         image = np.array(Image.fromarray(sample["image"]).resize((256, 256), Image.BILINEAR))
         mask = np.array(Image.fromarray(sample["mask"]).resize((256, 256), Image.NEAREST))
@@ -97,7 +103,26 @@ class SimpleOxfordPetDataset(OxfordPetDataset):
 
         return sample
 
+    def _rotate_sample(sample, max_deg=15):
+        """Rotate image/mask/trimap by the same random angle.
+        Image uses bilinear; mask/trimap use nearest; fill background with 0.
+        """
+        angle = np.random.uniform(-max_deg, max_deg)
 
+        img_pil = Image.fromarray(sample["image"]).rotate(
+            angle, resample=Image.BILINEAR, fillcolor=(0, 0, 0)
+        )
+        mask_pil = Image.fromarray(sample["mask"]).rotate(
+            angle, resample=Image.NEAREST, fillcolor=0
+        )
+        tri_pil = Image.fromarray(sample["trimap"]).rotate(
+            angle, resample=Image.NEAREST, fillcolor=0
+        )
+
+        sample["image"] = np.array(img_pil)
+        sample["mask"] = np.array(mask_pil)
+        sample["trimap"] = np.array(tri_pil)
+        return sample
 class TqdmUpTo(tqdm):
     def update_to(self, b=1, bsize=1, tsize=None):
         if tsize is not None:

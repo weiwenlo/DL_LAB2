@@ -17,7 +17,7 @@ def train(args):
     learning_rate = args.learning_rate
     
     model_type = args.model_type
-    trainfile_name = "epochs_"+str(epochs)+"type_"+model_type 
+    trainfile_name = "e_"+str(epochs)+"_"+"type_"+model_type 
     # 1. 準備資料
     train_dataset = load_dataset(data_path,"train")
     valid_dataset = load_dataset(data_path,"valid")
@@ -139,6 +139,7 @@ def get_args():
     parser.add_argument('--learning-rate', '-lr', type=float, default=1e-5, help='learning rate')
     # parser.add_argument('--model_para_path', '-m', type=str, default="best_unet.pth", help='para path')
     parser.add_argument('--model_type', '-t', type=str, default="rnet34andU", help='model type')
+    parser.add_argument('--comment', '-c', type=str, default="flip05", help='model type')
     return parser.parse_args()
  
 if __name__ == "__main__":
@@ -146,6 +147,7 @@ if __name__ == "__main__":
     seed = 123
     torch.cuda.manual_seed_all(seed)# 多組GPU需要固定
     torch.manual_seed(seed) # CPU和GPU固定
+    np.random.seed(seed)
     # 關掉 benchmark，避免根據輸入大小選不同 kernel
     # torch.backends.cudnn.benchmark = False
     torch.use_deterministic_algorithms(True) #演算法用非隨機性
