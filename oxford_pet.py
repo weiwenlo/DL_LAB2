@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 from urllib.request import urlretrieve
-
+from torchvision import transforms
 class OxfordPetDataset(torch.utils.data.Dataset):
     def __init__(self, root, mode="train", transform=None):
 
@@ -81,6 +81,11 @@ class OxfordPetDataset(torch.utils.data.Dataset):
 
 
 class SimpleOxfordPetDataset(OxfordPetDataset):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.color_jitter = transforms.ColorJitter(
+            brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2
+        )
     def __getitem__(self, *args, **kwargs):
 
         sample = super().__getitem__(*args, **kwargs)
@@ -96,6 +101,10 @@ class SimpleOxfordPetDataset(OxfordPetDataset):
                 sample["image"]  = np.flipud(sample["image"])
                 sample["mask"]   = np.flipud(sample["mask"])
                 sample["trimap"] = np.flipud(sample["trimap"])
+            # ----- 加 ColorJitter（只改 image）-----
+            img_pil = Image.fromarray(sample["image"])
+            img_pil = self.color_jitter(img_pil)
+            sample["image"] = np.array(img_pil)
         # resize images
         image = np.array(Image.fromarray(sample["image"]).resize((256, 256), Image.BILINEAR))
         mask = np.array(Image.fromarray(sample["mask"]).resize((256, 256), Image.NEAREST))
@@ -110,27 +119,27 @@ class SimpleOxfordPetDataset(OxfordPetDataset):
 
         return sample
 
-    def _rotate_sample(self,sample, max_deg=15):
-        """Rotate image/mask/trimap by the same random angle.
-        Image uses bilinear; mask/trimap use nearest; fill background with 0.
-        """
-        angle = np.random.uniform(-max_deg, max_deg)
+    # def _rotate_sample(self,sample, max_deg=15):
+    #     """Rotate image/mask/trimap by the same random angle.
+    #     Image uses bilinear; mask/trimap use nearest; fill background with 0.
+    #     """
+    #     angle = np.random.uniform(-max_deg, max_deg)
 
-        img_pil = Image.fromarray(sample["image"]).rotate(
-            angle, resample=Image.BILINEAR, fillcolor=(0, 0, 0)
-        )
-        mask_pil = Image.fromarray(sample["mask"]).rotate(
-            angle, resample=Image.NEAREST, fillcolor=0
-        )
-        tri_pil = Image.fromarray(sample["trimap"]).rotate(
-            angle, resample=Image.NEAREST, fillcolor=0
-        )
+    #     img_pil = Image.fromarray(sample["image"]).rotate(
+    #         angle, resample=Image.BILINEAR, fillcolor=(0, 0, 0)
+    #     )
+    #     mask_pil = Image.fromarray(sample["mask"]).rotate(
+    #         angle, resample=Image.NEAREST, fillcolor=0
+    #     )
+    #     tri_pil = Image.fromarray(sample["trimap"]).rotate(
+    #         angle, resample=Image.NEAREST, fillcolor=0
+    #     )
 
-        sample["image"] = np.array(img_pil)
-        sample["mask"] = np.array(mask_pil)
-        sample["trimap"] = np.array(tri_pil)
+    #     sample["image"] = np.array(img_pil)
+    #     sample["mask"] = np.array(mask_pil)
+    #     sample["trimap"] = np.array(tri_pil)
 
-        return sample
+    #     return sample
 class TqdmUpTo(tqdm):
     def update_to(self, b=1, bsize=1, tsize=None):
         if tsize is not None:
